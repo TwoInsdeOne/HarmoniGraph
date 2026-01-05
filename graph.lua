@@ -171,8 +171,7 @@ function Arrow:update(dt)
 end
 function Arrow:draw()
     love.graphics.setColor(current_theme.arrowColor)
-    love.graphics.print("la: "..self.lastAngle, 0, 100)
-    love.graphics.print("ca: "..self:getAngle(), 0, 120)
+    
     love.graphics.line(self.curve:render())
     love.graphics.circle("fill", self.node1.pos.x, self.node1.pos.y, 8, 70)
 

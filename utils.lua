@@ -97,10 +97,10 @@ notesColors = {
     {1, 0, 0},
     {1, 0.5, 0},
     {1, 1, 0},
-    {0.5, 1, 0},
+    {0.7, 1, 0},
     {0, 1, 0},
-    {0, 1, 0.5},
-    {0, 1, 1},
+    {0, 1, 0.8},
+    {0, 0.8, 1},
     {0, 0.5, 1},
     {0, 0, 1},
     {0.5, 0, 1},
@@ -110,12 +110,13 @@ notesColors = {
 }
 
 Theme = {}
-function Theme:new(bg, nl, arrow, acp)
+function Theme:new(bg, nl, arrow, acp, pbg)
     local o = {}
     o.backgroundColor = bg
     o.nodeLineColor = nl
     o.arrowColor = arrow
     o.arrowControlPointColor = acp
+    o.paletteBg = pbg
 
     setmetatable(o, self)
     self.__index = self
@@ -123,9 +124,9 @@ function Theme:new(bg, nl, arrow, acp)
 end
 
 themes = {
-    light = Theme:new({0.8, 0.85, 0.9}, {0, 0, 0}, {0, 0, 0}, {0, 0.6, 1}),
-    dark = Theme:new({0.1, 0.12, 0.15}, {0.7, 0.8, 0.9}, {0.7, 0.76, 0.87}, {0, 0.6, 1}),
-    dark2 = Theme:new({0.0, 0.12, 0.15}, {0.9, 0.7, 0.7}, {0.9, 0.8, 0.7}, {1, 0.6, 0})
+    light = Theme:new({0.8, 0.85, 0.9}, {0, 0, 0}, {0, 0, 0}, {0, 0.6, 1}, {0.75, 0.78, 0.83}),
+    dark = Theme:new({0.1, 0.12, 0.15}, {0.7, 0.8, 0.9}, {0.7, 0.76, 0.87}, {0, 0.6, 1}, {0.14, 0.18, 0.2}),
+    dark2 = Theme:new({0.0, 0.12, 0.15}, {0.9, 0.7, 0.7}, {0.9, 0.8, 0.7}, {1, 0.6, 0}, {0.12, 0.08, 0.07})
 }
 function scalarProduct(p1, s)
     return {p1[1]*s, p1[2]*s}

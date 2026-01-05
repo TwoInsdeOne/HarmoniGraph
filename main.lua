@@ -11,10 +11,14 @@ dragStartX, dragStartY = 0, 0
 dragStartCamX, dragStartCamY = 0, 0
 
 function love.load()
+    window_width, window_height = love.graphics.getDimensions( )
+
     font = love.graphics.newFont("Comfortaa-Bold.ttf", 20)
     require 'utils'
     require 'vector'
     require 'graph'
+    require 'palette'
+    --Palette:initializeAllNotes()
     love.graphics.setFont(font)
     current_theme = themes.light
 
@@ -34,7 +38,9 @@ function love.update(dt)
         camera.x = dragStartCamX + (mouseX - dragStartX)
         camera.y = dragStartCamY + (mouseY - dragStartY)
     end
+    Palette:update(dt)
     Graph:update(dt, camera)
+
 end
 
 function love.draw()
@@ -66,7 +72,7 @@ function love.draw()
 ]]--
 
     love.graphics.pop()
-
+    Palette:draw()
     if dragging then
         love.graphics.setColor(colors.black)
         love.graphics.circle("line", love.mouse.getX(), love.mouse.getY(), 30)
