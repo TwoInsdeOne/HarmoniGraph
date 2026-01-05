@@ -13,12 +13,15 @@ dragStartCamX, dragStartCamY = 0, 0
 function love.load()
     font = love.graphics.newFont("Comfortaa-Bold.ttf", 20)
     require 'utils'
+    require 'vector'
     require 'graph'
     love.graphics.setFont(font)
     current_theme = themes.light
 
     love.graphics.setBackgroundColor(current_theme.backgroundColor)
     love.graphics.setLineStyle("smooth");
+    love.graphics.setLineJoin( "bevel" )
+    
     key_pressed = ""
     
 end

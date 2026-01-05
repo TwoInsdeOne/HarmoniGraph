@@ -127,3 +127,52 @@ themes = {
     dark = Theme:new({0.1, 0.12, 0.15}, {0.7, 0.8, 0.9}, {0.7, 0.76, 0.87}, {0, 0.6, 1}),
     dark2 = Theme:new({0.0, 0.12, 0.15}, {0.9, 0.7, 0.7}, {0.9, 0.8, 0.7}, {1, 0.6, 0})
 }
+function scalarProduct(p1, s)
+    return {p1[1]*s, p1[2]*s}
+end
+
+function dotProduct(p1, p2)
+    return p1[1]*p2[1] + p1[2]*p2[2] 
+end
+
+function dotProductNormalized(p1, p2)
+    local mag = math.sqrt(p1[1]*p1[1] + p1[2]*p1[2])
+    local p1_ = normalize(p1)
+    local p2_ = scalarProduct(p2, 1/mag)
+    return p1_[1]*p2_[1] + p1_[2]*p2_[2] 
+end
+
+function linearCombination(p1, p2, t)
+    return (1-t)*p1[1] + t*p2[1], (1-t)*p1[2] + t*p2[2]
+end
+
+function normalize(p1)
+    local mag = math.sqrt(p1[1]*p1[1] + p1[2]*p1[2])
+    return scalarProduct(p1, 1/mag)
+end
+
+function numberArrayToString(array)
+    if #array == 0 then
+        return "[]"
+    end
+    local s = "["
+    for i = 1, #array - 1 do
+        s = s .. array[i] .. ", "
+    end
+    s = s .. array[#array] .. "]"
+    return s
+end
+
+function transformation(v1, v2)
+
+
+end
+
+function rotateVector(v, angle)
+    local vx, vy = v[1]*math.cos(angle) - v[2]*math.sin(angle), v[2]*math.cos(angle) + v[1]*math.sin(angle)
+    return vx, vy
+end
+
+function scaleVector(v, amount)
+    return v[1]*amount, v[2]*amount
+end
