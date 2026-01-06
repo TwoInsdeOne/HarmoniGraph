@@ -1,3 +1,32 @@
+Dot = {}
+
+function Dot:new()
+    local o = {}
+    o.position = 0 -- position along the Curve
+    o.radius = 3*(love.math.random()+2)
+    o.offset = Vector:new(love.math.random()*o.radius*2 - o.radius/2,
+                love.math.random()*o.radius*2 - o.radius/2)
+    o.dead = false
+    setmetatable(o, self)
+    self.__index = self
+    return o
+end
+
+function Dot:draw(curve)
+    if self.position <= 1 then
+        local position = Vector:new( curve:evaluate(self.position)) + self.offset
+        love.graphics.circle("fill", position.x, position.y, self.radius* math.min(math.max(6 - 6*self.position, 0), 1))
+    end
+    
+end
+function Dot:update(dt)
+    if self.position < 1 then
+        self.position = self.position+dt*0.6
+    else
+        self.dead = true
+    end
+end
+
 Node = {}
 
 function Node:new(x, y)
@@ -12,6 +41,7 @@ function Node:new(x, y)
     o.dragOffset = {0, 0}
     o.id = 0
     o.nextNodes = {}
+    o.img = nil
     setmetatable(o, self)
     self.__index = self
     return o
@@ -47,7 +77,17 @@ function Node:draw(nodeSize)
     love.graphics.circle("fill", self.pos.x, self.pos.y, nodeSize)
     love.graphics.setColor(current_theme.nodeLineColor)
     love.graphics.circle("line", self.pos.x, self.pos.y, nodeSize, 100)
+    
+    if self.img then
+        love.graphics.setColor(colors.white)
+        local scale = nodeSize/self.img.getHeight()
+        local origin = self.img.getHeight()/2
+        love.graphics.draw(self.img, self.pos.x, self.pos.y, 0, scale, scale, origin, origin)
+    end
+
+
     if self.root then
+        love.graphics.setColor(current_theme.nodeLineColor)
         local rootSignSize = nodeSize/2
         local rootSignPoints = {self.pos.x, self.pos.y - nodeSize,
             self.pos.x - rootSignSize, self.pos.y - nodeSize - rootSignSize,
@@ -55,6 +95,7 @@ function Node:draw(nodeSize)
         love.graphics.polygon("fill", rootSignPoints)
         love.graphics.arc("fill", self.pos.x, self.pos.y - nodeSize - rootSignSize, rootSignSize/2, 0, -math.pi)
     end
+
 
 end
 
@@ -91,12 +132,33 @@ function Arrow:new(node1, node2)
     o.lastBasePoint = {0, 0}
     o.lastAngle = 0
     o.lastLength = 0
+    o.dots = {}
+    o.dotCreationInterval = 0.3
+    o.dotLastCreated = 0
+    o.timer = 0
+    o.lastDotRemovalID = 0
     setmetatable(o, self)
     self.__index = self
+
+    
     return o
 end
 
+
 function Arrow:update(dt)
+    self.timer = self.timer + dt
+    if self.timer - self.dotLastCreated > self.dotCreationInterval then
+        table.insert(self.dots, Dot:new())
+        self.dotLastCreated = self.timer
+    end
+    for i = 1, #self.dots do
+        if self.dots[i].dead then
+            table.remove(self.dots, i)
+            break
+        else
+            self.dots[i]:update(dt)
+        end
+    end
     self.controlPoints = {self.node1.pos.x, self.node1.pos.y,
         self.controlPoints[3], self.controlPoints[4],
         self.node2.pos.x, self.node2.pos.y}
@@ -172,8 +234,16 @@ end
 function Arrow:draw()
     love.graphics.setColor(current_theme.arrowColor)
     
-    love.graphics.line(self.curve:render())
+    --love.graphics.line(self.curve:render())
     love.graphics.circle("fill", self.node1.pos.x, self.node1.pos.y, 8, 70)
+
+    for i = 1, #self.dots do
+        self.dots[i]:draw(self.curve)
+    end
+    
+    love.graphics.setColor(0, 1, 1, 0.3)
+    love.graphics.line(self.node1.pos.x, self.node1.pos.y, self.controlPoints[3], self.controlPoints[4])
+    love.graphics.line(self.node2.pos.x, self.node2.pos.y, self.controlPoints[3], self.controlPoints[4])
 
     love.graphics.setColor(current_theme.arrowControlPointColor)
     
@@ -195,12 +265,12 @@ function Arrow:draw()
     love.graphics.setColor(current_theme.arrowColor)
     love.graphics.circle("fill", self.node2.pos.x, self.node2.pos.y, 8, 70)
     
-    local px, py = self.curve:evaluate(self.p1)
-    love.graphics.circle("fill", px, py, 6)
-    local p2x, p2y = self.curve:evaluate(self.p2)
-    love.graphics.circle("fill", p2x, p2y, 6)
-    local p3x, p3y = self.curve:evaluate(self.p3)
-    love.graphics.circle("fill", p3x, p3y, 6)
+    --local px, py = self.curve:evaluate(self.p1)
+    --love.graphics.circle("fill", px, py, 6)
+    --local p2x, p2y = self.curve:evaluate(self.p2)
+    --love.graphics.circle("fill", p2x, p2y, 6)
+    --local p3x, p3y = self.curve:evaluate(self.p3)
+    --love.graphics.circle("fill", p3x, p3y, 6)
 end
 
 function Arrow:getAngle()

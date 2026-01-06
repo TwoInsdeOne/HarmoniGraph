@@ -110,23 +110,23 @@ notesColors = {
 }
 
 Theme = {}
-function Theme:new(bg, nl, arrow, acp, pbg)
+function Theme:new(bg, nl, arrow, acp, pbg, lw)
     local o = {}
     o.backgroundColor = bg
     o.nodeLineColor = nl
     o.arrowColor = arrow
     o.arrowControlPointColor = acp
     o.paletteBg = pbg
-
+    o.lineWidth = 3
     setmetatable(o, self)
     self.__index = self
     return o
 end
 
 themes = {
-    light = Theme:new({0.8, 0.85, 0.9}, {0, 0, 0}, {0, 0, 0}, {0, 0.6, 1}, {0.75, 0.78, 0.83}),
-    dark = Theme:new({0.1, 0.12, 0.15}, {0.7, 0.8, 0.9}, {0.7, 0.76, 0.87}, {0, 0.6, 1}, {0.14, 0.18, 0.2}),
-    dark2 = Theme:new({0.0, 0.12, 0.15}, {0.9, 0.7, 0.7}, {0.9, 0.8, 0.7}, {1, 0.6, 0}, {0.12, 0.08, 0.07})
+    light = Theme:new({0.8, 0.85, 0.9}, {0, 0, 0}, {0, 0, 0}, {0, 0.6, 1}, {0.75, 0.78, 0.83}, 3),
+    dark = Theme:new({0.1, 0.12, 0.15}, {0.7, 0.8, 0.9}, {0.7, 0.76, 0.87}, {0, 0.6, 1}, {0.14, 0.18, 0.2}, 3),
+    dark2 = Theme:new({0.0, 0.12, 0.15}, {0.9, 0.7, 0.7}, {0.9, 0.8, 0.7}, {1, 0.6, 0}, {0.12, 0.08, 0.07}, 4)
 }
 function scalarProduct(p1, s)
     return {p1[1]*s, p1[2]*s}
@@ -176,4 +176,13 @@ end
 
 function scaleVector(v, amount)
     return v[1]*amount, v[2]*amount
+end
+
+function cursorInsideRect(startX, startY, width, height)
+    local inside = true
+    local mx, my = love.mouse.getX(), love.mouse.getY()
+    if mx < startX or mx > startX + width or my < startY or my > startY+ height then
+        inside = false
+    end
+    return inside
 end

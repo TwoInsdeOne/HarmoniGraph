@@ -18,11 +18,12 @@ function love.load()
     require 'vector'
     require 'graph'
     require 'palette'
-    --Palette:initializeAllNotes()
+    Palette:initializeAllNotes()
     love.graphics.setFont(font)
     current_theme = themes.light
 
     love.graphics.setBackgroundColor(current_theme.backgroundColor)
+    love.graphics.setLineWidth(current_theme.lineWidth)
     love.graphics.setLineStyle("smooth");
     love.graphics.setLineJoin( "bevel" )
     
@@ -82,8 +83,11 @@ function love.draw()
 end
 
 function love.mousepressed( x, y, button)
-
-    Graph:mousePressed(x, y, button)
+    local palette = Palette:mousepressed(x, y, button)
+    if not palette then
+        Graph:mousePressed(x, y, button)
+    end
+    
 
     if button == 3 then
         isDragging = true
@@ -126,16 +130,19 @@ function love.keypressed(key)
         current_theme = themes.light
         love.graphics.setBackgroundColor(current_theme.backgroundColor)
         key_pressed = "a"
+        Palette:updateTheme("light")
     end
     if key == "s" then
         current_theme = themes.dark
         love.graphics.setBackgroundColor(current_theme.backgroundColor)
         key_pressed = "s"
+        Palette:updateTheme("dark")
     end
     if key == "d" then
         current_theme = themes.dark2
         love.graphics.setBackgroundColor(current_theme.backgroundColor)
         key_pressed = "d"
+        Palette:updateTheme("dark")
     end
 end
 
