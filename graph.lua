@@ -42,6 +42,8 @@ function Node:new(x, y)
     o.id = 0
     o.nextNodes = {}
     o.img = nil
+    o.imgTheme = "light"
+    o.noteName = ""
     setmetatable(o, self)
     self.__index = self
     return o
@@ -57,6 +59,10 @@ function Node:update(dt, camera)
         local wx, wy = screenToWorldPosition(love.mouse.getX(), love.mouse.getY(), camera)
         self.pos.x = wx + self.dragOffset[1]
         self.pos.y = wy + self.dragOffset[2]
+    end
+    if self.img and self.imgTheme ~= current_theme.quality then
+        self.imgTheme = current_theme.quality
+        self.img = love.graphics.newImage("/imgs/notes/"..current_theme.quality.."/"..Palette.notesNames[Palette.currentNote]..".png")
     end
 end
 
@@ -80,9 +86,9 @@ function Node:draw(nodeSize)
     
     if self.img then
         love.graphics.setColor(colors.white)
-        local scale = nodeSize/self.img.getHeight()
-        local origin = self.img.getHeight()/2
-        love.graphics.draw(self.img, self.pos.x, self.pos.y, 0, scale, scale, origin, origin)
+        local scale = nodeSize/self.img:getHeight()
+        local origin = self.img:getHeight()/2
+        love.graphics.draw(self.img, self.pos.x, self.pos.y, 0, scale*2.7, scale*2.7, origin, origin)
     end
 
 
@@ -133,7 +139,7 @@ function Arrow:new(node1, node2)
     o.lastAngle = 0
     o.lastLength = 0
     o.dots = {}
-    o.dotCreationInterval = 0.3
+    o.dotCreationInterval = 0.15
     o.dotLastCreated = 0
     o.timer = 0
     o.lastDotRemovalID = 0
@@ -312,7 +318,10 @@ Graph.dragNode = 0
 function Graph:newNode(x, y, camera)
     local wx, wy = screenToWorldPosition(x, y, camera)
     table.insert(self.nodes, Node:new(wx, wy))
-    self.nodes[#self.nodes].id = #self.nodes 
+    self.nodes[#self.nodes].id = #self.nodes
+    self.nodes[#self.nodes].img = Palette.currentNote > 0 and love.graphics.newImage("/imgs/notes/"..current_theme.quality.."/"..Palette.notesNames[Palette.currentNote]..".png")
+    self.nodes[#self.nodes].imgTheme = current_theme.quality
+    self.nodes[#self.nodes].noteName = Palette.notesNames[Palette.currentNote]
 end
 
 function Graph:update(dt, camera)

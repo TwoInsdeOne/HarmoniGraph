@@ -110,7 +110,7 @@ notesColors = {
 }
 
 Theme = {}
-function Theme:new(bg, nl, arrow, acp, pbg, lw)
+function Theme:new(quality, bg, nl, arrow, acp, pbg, lw)
     local o = {}
     o.backgroundColor = bg
     o.nodeLineColor = nl
@@ -118,15 +118,16 @@ function Theme:new(bg, nl, arrow, acp, pbg, lw)
     o.arrowControlPointColor = acp
     o.paletteBg = pbg
     o.lineWidth = 3
+    o.quality = quality
     setmetatable(o, self)
     self.__index = self
     return o
 end
 
 themes = {
-    light = Theme:new({0.8, 0.85, 0.9}, {0, 0, 0}, {0, 0, 0}, {0, 0.6, 1}, {0.75, 0.78, 0.83}, 3),
-    dark = Theme:new({0.1, 0.12, 0.15}, {0.7, 0.8, 0.9}, {0.7, 0.76, 0.87}, {0, 0.6, 1}, {0.14, 0.18, 0.2}, 3),
-    dark2 = Theme:new({0.0, 0.12, 0.15}, {0.9, 0.7, 0.7}, {0.9, 0.8, 0.7}, {1, 0.6, 0}, {0.12, 0.08, 0.07}, 4)
+    light = Theme:new("light", {0.8, 0.85, 0.9}, {0, 0, 0}, {0, 0, 0}, {0, 0.6, 1}, {0.75, 0.78, 0.83}, 3),
+    dark = Theme:new("dark", {0.1, 0.12, 0.15}, {0.7, 0.8, 0.9}, {0.7, 0.76, 0.87}, {0, 0.6, 1}, {0.14, 0.18, 0.2}, 3),
+    dark2 = Theme:new("dark", {0.0, 0.12, 0.15}, {0.9, 0.7, 0.7}, {0.9, 0.8, 0.7}, {1, 0.6, 0}, {0.12, 0.08, 0.07}, 4)
 }
 function scalarProduct(p1, s)
     return {p1[1]*s, p1[2]*s}

@@ -56,6 +56,10 @@ function Note:draw()
 
 end
 
+function Note:getSelectOver()
+    return self.select:isMouseOver()
+end
+
 Palette = {}
 Palette.notes = {}
 Palette.width = 300
@@ -63,6 +67,7 @@ Palette.margin = 0.1
 Palette.notesNames = {"C", "G", "D", "A", "E", "B", "Gb", "Db", "Ab", "Eb", "Bb", "F"}
 Palette.pos = Vector:new(0, 0)
 Palette.image = love.graphics.newImage("imgs/chromatic-circle-white.png")
+Palette.currentNote = 0
 
 function Palette:initializeAllNotes(mode)
     
@@ -84,6 +89,9 @@ function Palette:update(dt)
 end
 
 function Palette:draw()
+    
+    love.graphics.setColor(current_theme.paletteBg[1], current_theme.paletteBg[2], current_theme.paletteBg[3], 0.8)
+    love.graphics.rectangle("fill", self:getBounds2())
     local radius = self.image:getHeight()
     local scale = self.width/radius
     love.graphics.setColor(1, 1, 1, 1)
@@ -94,6 +102,13 @@ function Palette:draw()
     for i = 1, 12 do
         self.notes[i]:draw()
     end
+    local w_width, w_height = love.graphics.getDimensions()
+    if self.currentNote > 0 then
+        love.graphics.setColor(notesColors[self.currentNote])
+        love.graphics.circle("fill", w_width - self.width + 32, 32, 25)
+    end
+    love.graphics.setColor(current_theme.arrowColor)
+    love.graphics.circle("line", w_width - self.width + 32, 32, 25)
 
 end
 
@@ -145,15 +160,28 @@ function Palette:updateTheme(mode) --dark or light
     
 end
 
-function Palette:getBounds()
+function Palette:getBounds1()
     local w_width, w_height = love.graphics.getDimensions()
     local height = self.width/3.0
     return w_width/2 - self.width/2, w_height - height - 5, self.width, height
 end
+function Palette:getBounds2()
+    local w_width, w_height = love.graphics.getDimensions()
+
+    return w_width - self.width, 0, self.width, self.width
+end
 
 function Palette:mousepressed(x, y, button)
-    local x, y, w, h = self:getBounds()
+    local x, y, w, h = self:getBounds2()
     if cursorInsideRect(x - 5, y - 5, w + 5, h + 5) then
+        self.currentNote = 0
+        for i = 1, 12 do
+            if self.notes[i]:getSelectOver() then
+                self.currentNote = i
+                break
+            end
+        end
+        
         return true
     end
     return false

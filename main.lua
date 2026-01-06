@@ -16,8 +16,9 @@ function love.load()
     font = love.graphics.newFont("Comfortaa-Bold.ttf", 20)
     require 'utils'
     require 'vector'
-    require 'graph'
     require 'palette'
+    require 'graph'
+    
     Palette:initializeAllNotes()
     love.graphics.setFont(font)
     current_theme = themes.light
@@ -57,7 +58,7 @@ function love.draw()
     local controlPoints = {125,125, love.mouse.getX(), love.mouse.getY(), 500,125}
     local curve = love.math.newBezierCurve(controlPoints)
     love.graphics.setColor(1, 0, 0)
-    love.graphics.print("current theme: "..key_pressed..", "..current_theme.backgroundColor[1], 0, 80)
+    love.graphics.print("note: ".. (Palette.currentNote > 0 and Palette.notesNames[Palette.currentNote] or "none"), 0, 80)
     --love.graphics.line(curve:render())
     Graph:draw()
     
