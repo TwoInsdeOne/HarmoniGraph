@@ -76,10 +76,10 @@ function love.draw()
     love.graphics.setColor(colors.red)
     love.graphics.circle("fill", 300, 200, 5)
 ]]--
-
+    Fairies:draw()
     love.graphics.pop()
     Palette:draw()
-    Fairies:draw()
+    
     if dragging then
         love.graphics.setColor(colors.black)
         love.graphics.circle("line", love.mouse.getX(), love.mouse.getY(), 30)

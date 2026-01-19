@@ -10,6 +10,9 @@ function Fairy:new(delay, rootNodeID)
     o.timer = 0
     o.fairy_img = love.graphics.newImage("fairy/fairy_"..current_theme.quality.."_00001.png")
     o.rotation = 0
+    o.mode = "ordered"
+    o.ordering = {}
+    o.currentOrdering = 1
     setmetatable(o, self)
     self.__index = self
     return o
@@ -24,20 +27,32 @@ function Fairy:update(dt)
 end
 
 function Fairy:playNext()
-    local next = {}
-    for i = 1, #self.current do
-        local currentNode = Graph.nodes[self.current[i]]
-        currentNode:Play()
-        self:addToHistoric(self.current[i])
-        
-        for j = 1, #currentNode.nextNodes do
-            table.insert(next, currentNode.nextNodes[j])
+    if self.mode == "split" then
+        local next = {}
+        for i = 1, #self.current do
+            local currentNode = Graph.nodes[self.current[i]]
+            currentNode:Play()
+            self:addToHistoric(self.current[i])
+            
+            for j = 1, #currentNode.nextNodes do
+                table.insert(next, currentNode.nextNodes[j])
+            end
+            
         end
-        
+        self.current = {}
+        for i = 1, #next do
+            table.insert(self.current, next[i])
+        end
     end
-    self.current = {}
-    for i = 1, #next do
-        table.insert(self.current, next[i])
+    if self.mode == "ordered" then
+        
+        
+        local currentNode = Graph.nodes[self.current[1]]
+        currentNode:Play()
+        
+        
+        self.current[1] = currentNode.nextNodes[currentNode.currentOrdering]
+        currentNode:incrementCurrentOrdering()
     end
 end
 

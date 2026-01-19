@@ -54,6 +54,7 @@ function Node:new(x, y)
     o.noteName = ""
     o.noteSource = nil
     o.octave = 3
+    o.currentOrdering = 1
     setmetatable(o, self)
     self.__index = self
     return o
@@ -154,6 +155,14 @@ function Node:hasNextNode(n)
     return false
 end
 
+function Node:incrementCurrentOrdering()
+    self.currentOrdering = self.currentOrdering + 1
+    if self.currentOrdering > #self.nextNodes then
+        self.currentOrdering = 1
+    end
+
+end
+
 Arrow = {}
 
 function Arrow:new(node1, node2)
@@ -178,6 +187,7 @@ function Arrow:new(node1, node2)
     o.dotLastCreated = 0
     o.timer = 0
     o.lastDotRemovalID = 0
+    o.order = 1
     setmetatable(o, self)
     self.__index = self
 
@@ -308,12 +318,27 @@ function Arrow:draw()
     love.graphics.setColor(current_theme.arrowColor)
     love.graphics.circle("fill", self.node2.pos.x, self.node2.pos.y, 8, 70)
     
+    
     --local px, py = self.curve:evaluate(self.p1)
     --love.graphics.circle("fill", px, py, 6)
     --local p2x, p2y = self.curve:evaluate(self.p2)
     --love.graphics.circle("fill", p2x, p2y, 6)
     --local p3x, p3y = self.curve:evaluate(self.p3)
     --love.graphics.circle("fill", p3x, p3y, 6)
+
+    if Graph.mode == "ordered" and #self.node1.nextNodes > 1 then
+        love.graphics.setFont(font2)
+        local ox, oy = font2:getWidth(self.order)/2, font2:getHeight(self.order)/2.5
+        local x_, y_ = self.curve:evaluate(0.5)
+        love.graphics.setColor(current_theme.nodeLineColor)
+        love.graphics.circle("line", x_, y_, Graph.nodeSize/2.5)
+        
+        love.graphics.setColor(0.6, 0.7, 0.75)
+        love.graphics.circle("fill",  x_, y_, Graph.nodeSize/2.5)
+        love.graphics.setColor(0, 0, 0)
+        love.graphics.print(self.order,  x_, y_, 0, 0.5, 0.5, ox, oy)
+        love.graphics.setFont(font)
+    end
 end
 
 function Arrow:getAngle()
@@ -352,6 +377,7 @@ Graph.arrowCreationNode1 = 0
 Graph.arrowCreationNode2 = 0
 Graph.dragArrowControlPoint = 0
 Graph.dragNode = 0
+Graph.mode = "ordered"
 function Graph:newNode(x, y, camera)
     local wx, wy = screenToWorldPosition(x, y, camera)
     table.insert(self.nodes, Node:new(wx, wy))
@@ -367,6 +393,7 @@ function Graph:newNode(x, y, camera)
         self.nodes[#self.nodes].noteSource = Palette:generateNoteSource(Palette.currentNote)
     end
     self.nodes[#self.nodes].octave = Palette.currentOctave
+    self.nodes[#self.nodes]:Play()
 end
 
 function Graph:update(dt, camera)
@@ -505,5 +532,6 @@ function Graph:finishArrow()
     table.insert(self.arrows, Arrow:new(self.nodes[self.arrowCreationNode1], self.nodes[node2]))
     self.nodes[self.arrowCreationNode1]:insertNextNode(node2)
     self.nodes[node2].root = false
+    self.arrows[#self.arrows].order = #self.nodes[self.arrowCreationNode1].nextNodes
 
 end
