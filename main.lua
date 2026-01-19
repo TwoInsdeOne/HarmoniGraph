@@ -14,11 +14,14 @@ function love.load()
     window_width, window_height = love.graphics.getDimensions( )
 
     font = love.graphics.newFont("Comfortaa-Bold.ttf", 20)
+
+    font2 = love.graphics.newFont("KirangHaerang-Regular.ttf", 40)
     require 'utils'
     require 'vector'
     require 'palette'
     require 'graph'
-    
+    require 'fairies'
+
     Palette:initializeAllNotes()
     love.graphics.setFont(font)
     current_theme = themes.light
@@ -42,6 +45,7 @@ function love.update(dt)
     end
     Palette:update(dt)
     Graph:update(dt, camera)
+    Fairies:update(dt)
 
 end
 
@@ -75,6 +79,7 @@ function love.draw()
 
     love.graphics.pop()
     Palette:draw()
+    Fairies:draw()
     if dragging then
         love.graphics.setColor(colors.black)
         love.graphics.circle("line", love.mouse.getX(), love.mouse.getY(), 30)
@@ -98,7 +103,11 @@ function love.mousepressed( x, y, button)
 
 end
 function love.mousereleased(x, y, button)
+    
+    
     Graph:mouseReleased(x, y, button)
+    
+    
 
     if button == 3 then
         isDragging = false
@@ -110,21 +119,24 @@ function love.mousemoved(x, y, dx, dy)
 end
 
 function love.wheelmoved(x, y)
-    -- Armazenar posição do mouse antes do zoom
-    local mouseX, mouseY = love.mouse.getPosition()
-    local worldX = (mouseX - camera.x) / camera.scale
-    local worldY = (mouseY - camera.y) / camera.scale
-    
-    -- Ajustar escala
-    if y > 0 then
-        camera.scale = camera.scale + 0.1
-    elseif y < 0 then
-        camera.scale = math.max(0.1, camera.scale - 0.1) -- Evitar escala negativa ou zero
+    local palette = Palette:wheelmoved(x, y)
+    if not palette then
+        -- Armazenar posição do mouse antes do zoom
+        local mouseX, mouseY = love.mouse.getPosition()
+        local worldX = (mouseX - camera.x) / camera.scale
+        local worldY = (mouseY - camera.y) / camera.scale
+        
+        -- Ajustar escala
+        if y > 0 then
+            camera.scale = camera.scale + 0.1
+        elseif y < 0 then
+            camera.scale = math.max(0.1, camera.scale - 0.1) -- Evitar escala negativa ou zero
+        end
+        
+        -- Ajustar posição para manter o zoom centrado no mouse
+        camera.x = mouseX - worldX * camera.scale
+        camera.y = mouseY - worldY * camera.scale
     end
-    
-    -- Ajustar posição para manter o zoom centrado no mouse
-    camera.x = mouseX - worldX * camera.scale
-    camera.y = mouseY - worldY * camera.scale
 end
 function love.keypressed(key)
     if key == "a" then
@@ -132,18 +144,24 @@ function love.keypressed(key)
         love.graphics.setBackgroundColor(current_theme.backgroundColor)
         key_pressed = "a"
         Palette:updateTheme("light")
+        Fairies:updateTheme()
     end
     if key == "s" then
         current_theme = themes.dark
         love.graphics.setBackgroundColor(current_theme.backgroundColor)
         key_pressed = "s"
         Palette:updateTheme("dark")
+        Fairies:updateTheme()
     end
     if key == "d" then
         current_theme = themes.dark2
         love.graphics.setBackgroundColor(current_theme.backgroundColor)
         key_pressed = "d"
         Palette:updateTheme("dark")
+        Fairies:updateTheme()
+    end
+    if key == "f" then
+        Fairies:addFairy(Graph:getRootNodes())
     end
 end
 

@@ -82,6 +82,10 @@ function Vector:rotateVector(angle)
     self.x, self.y = self.x*math.cos(angle) - self.y*math.sin(angle), self.y*math.cos(angle) + self.x*math.sin(angle)
 end
 
+function Vector:getRotatedVector(angle)
+    return Vector:new(self.x*math.cos(angle) - self.y*math.sin(angle), self.y*math.cos(angle) + self.x*math.sin(angle))
+end
+
 function Vector:linearCombination(v2, t)
     return Vector:new(self.x*(1-t) + v2.x*t, self.y*(1-t) + v2.y*t )
 end

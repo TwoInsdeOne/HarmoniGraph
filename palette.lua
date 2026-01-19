@@ -65,9 +65,15 @@ Palette.notes = {}
 Palette.width = 300
 Palette.margin = 0.1
 Palette.notesNames = {"C", "G", "D", "A", "E", "B", "Gb", "Db", "Ab", "Eb", "Bb", "F"}
+Palette.notesNames1 = {"C", "G", "D", "A", "E", "B", "G♭", "D♭", "A♭", "E♭", "B♭", "F"}
+Palette.notesNames2 = {"C", "G", "D", "A", "E", "B", "F#", "C#", "G#", "D#", "A#", "F"}
 Palette.pos = Vector:new(0, 0)
 Palette.image = love.graphics.newImage("imgs/chromatic-circle-white.png")
 Palette.currentNote = 0
+Palette.currentOctave = 3
+Palette.octaveQtd = 5
+Palette.notation = "bemol"
+Palette.c3 = love.audio.newSource( "notes/C3_.wav", "static" )
 
 function Palette:initializeAllNotes(mode)
     
@@ -110,6 +116,23 @@ function Palette:draw()
     love.graphics.setColor(current_theme.arrowColor)
     love.graphics.circle("line", w_width - self.width + 32, 32, 25)
 
+    --#######################
+
+    love.graphics.setColor(current_theme.paletteBg[1], current_theme.paletteBg[2], current_theme.paletteBg[3], 0.8)
+    love.graphics.rectangle("fill", self:getBounds3())
+    local x3, y3, w3, h3 = self:getBounds3()
+    local _cell_size = w3/self.octaveQtd
+    love.graphics.setFont(font2)
+    love.graphics.setColor(current_theme.nodeLineColor)
+    love.graphics.print("octave:", x3+ 4, y3 - 18, 0, 0.6, 0.6)
+    for i = 1, self.octaveQtd do
+        local ox, oy = font2:getWidth(i)/2.8, font2:getHeight(i)/2.5
+        love.graphics.print(i, x3 + _cell_size*(i-0.5), y3 + 20, 0, 0.8, 0.8, ox, oy)
+        if self.currentOctave == i then
+            love.graphics.rectangle("line", x3 + _cell_size*(i-1), y3, _cell_size, h3)
+        end
+    end
+
 end
 
 function Palette:draw2()
@@ -150,6 +173,44 @@ function Palette:isMouseOver()
 
 end
 
+function Palette:generateNoteSource(noteID)
+    local newSource = Palette.c3:clone()
+    if noteID == 2 then
+        newSource:setPitch( (2^(1/12))^7 )
+    end
+    if noteID == 3 then
+        newSource:setPitch( (2^(1/12))^2 )
+    end
+    if noteID == 4 then
+        newSource:setPitch( (2^(1/12))^9 )
+    end
+    if noteID == 5 then
+        newSource:setPitch( (2^(1/12))^4 )
+    end
+    if noteID == 6 then
+        newSource:setPitch( (2^(1/12))^11 )
+    end
+    if noteID == 7 then
+        newSource:setPitch( (2^(1/12))^6 )
+    end
+    if noteID == 8 then
+        newSource:setPitch( (2^(1/12))^1 )
+    end
+    if noteID == 9 then
+        newSource:setPitch( (2^(1/12))^8 )
+    end
+    if noteID == 10 then
+        newSource:setPitch( (2^(1/12))^3 )
+    end
+    if noteID == 11 then
+        newSource:setPitch( (2^(1/12))^10 )
+    end
+    if noteID == 12 then
+        newSource:setPitch( (2^(1/12))^5 )
+    end
+    return newSource
+end
+
 function Palette:updateTheme(mode) --dark or light
     if mode == "dark" then
         self.image = love.graphics.newImage("imgs/chromatic-circle-black.png")
@@ -171,9 +232,16 @@ function Palette:getBounds2()
     return w_width - self.width, 0, self.width, self.width
 end
 
-function Palette:mousepressed(x, y, button)
+function Palette:getBounds3()
+    
     local x, y, w, h = self:getBounds2()
-    if cursorInsideRect(x - 5, y - 5, w + 5, h + 5) then
+    return x, w, self.width, 40
+end
+
+function Palette:mousepressed(x, y, button)
+    local _x, _y, w, h = self:getBounds2()
+    local x2, y2, w2, h2 = self:getBounds3()
+    if cursorInsideRect(_x - 5, _y - 5, w + 5, h + 5) or cursorInsideRect(x2 - 5, y2 - 5, w2 + 5, h2 + 5) then
         self.currentNote = 0
         for i = 1, 12 do
             if self.notes[i]:getSelectOver() then
@@ -181,7 +249,44 @@ function Palette:mousepressed(x, y, button)
                 break
             end
         end
-        
+        return true
+    end
+    
+
+    return false
+end
+
+function Palette:wheelmoved(x, y)
+    local _x, _y, w, h = self:getBounds2()
+    local x2, y2, w2, h2 = self:getBounds3()
+    if cursorInsideRect(_x - 5, _y - 5, w + 5, h + 5) then
+        if y > 0 then
+            self.currentNote = self.currentNote + 1
+            if self.currentNote > 12 then
+                self.currentNote = 1
+            end
+        end
+        if y < 0 then
+            self.currentNote = self.currentNote - 1
+            if self.currentNote < 1 then
+                self.currentNote = 12
+            end
+        end
+        return true
+    end
+    if cursorInsideRect(x2 - 5, y2 - 5, w2 + 5, h2 + 5)  then
+        if y > 0 then
+            self.currentOctave = self.currentOctave + 1
+            if self.currentOctave > self.octaveQtd then
+                self.currentOctave = 1
+            end
+        end
+        if y < 0 then
+            self.currentOctave = self.currentOctave - 1
+            if self.currentOctave < 1 then
+                self.currentOctave = self.octaveQtd
+            end
+        end
         return true
     end
     return false

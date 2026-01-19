@@ -13,15 +13,23 @@ function Dot:new()
 end
 
 function Dot:draw(curve)
-    if self.position <= 1 then
-        local position = Vector:new( curve:evaluate(self.position)) + self.offset
-        love.graphics.circle("fill", position.x, position.y, self.radius* math.min(math.max(6 - 6*self.position, 0), 1))
+    if self.position <= 1 and self.position >= 0.05 then
+        --local position = Vector:new( curve:evaluate(self.position)) + self.offset
+        --love.graphics.circle("fill", position.x, position.y, self.radius* math.min(math.max(6 - 6*self.position, 0), 1))
+        local position = Vector:new( curve:evaluate(self.position))
+        local position2 = Vector:new(curve:evaluate(self.position - 0.05))
+        local eixo = position2 - position
+        eixo = eixo*(24/eixo:getMagnitude())
+        local right_wing = eixo:getRotatedVector(math.rad(30))
+        local left_wing = eixo:getRotatedVector(math.rad(330))
+        love.graphics.polygon("fill", position.x, position.y, position.x + left_wing.x, position.y + left_wing.y,
+            position.x + (eixo*0.5).x, position.y + (eixo*0.5).y, position.x + right_wing.x, position.y + right_wing.y)
     end
     
 end
 function Dot:update(dt)
     if self.position < 1 then
-        self.position = self.position+dt*0.6
+        self.position = self.position+dt*1.2
     else
         self.dead = true
     end
@@ -44,6 +52,8 @@ function Node:new(x, y)
     o.img = nil
     o.imgTheme = "light"
     o.noteName = ""
+    o.noteSource = nil
+    o.octave = 3
     setmetatable(o, self)
     self.__index = self
     return o
@@ -91,6 +101,13 @@ function Node:draw(nodeSize)
         love.graphics.draw(self.img, self.pos.x, self.pos.y, 0, scale*2.7, scale*2.7, origin, origin)
     end
 
+    if self.noteName ~= "" then
+        love.graphics.setFont(font2)
+        local ox, oy = font2:getWidth(self.noteName)/2, font2:getHeight(self.noteName)/2.5
+        love.graphics.setColor(current_theme.nodeLineColor)
+        love.graphics.print(self.noteName, self.pos.x, self.pos.y, 0, 1, 1, ox, oy)
+        love.graphics.setFont(font)
+    end
 
     if self.root then
         love.graphics.setColor(current_theme.nodeLineColor)
@@ -101,8 +118,26 @@ function Node:draw(nodeSize)
         love.graphics.polygon("fill", rootSignPoints)
         love.graphics.arc("fill", self.pos.x, self.pos.y - nodeSize - rootSignSize, rootSignSize/2, 0, -math.pi)
     end
+    if self.noteName ~= "" then
+        love.graphics.setFont(font2)
+        local ox, oy = font2:getWidth(self.octave)/2, font2:getHeight(self.octave)/2.5
+        love.graphics.setColor(current_theme.nodeLineColor)
+        love.graphics.circle("line", self.pos.x + math.cos(math.rad(45))*nodeSize, self.pos.y + math.sin(math.rad(45))*nodeSize, nodeSize/2.5)
+        love.graphics.setColor(0.5, 0.6, 0.6)
+        love.graphics.circle("fill", self.pos.x + math.cos(math.rad(45))*nodeSize, self.pos.y + math.sin(math.rad(45))*nodeSize, nodeSize/2.5)
+        love.graphics.setColor(0, 0, 0)
+        love.graphics.print(self.octave, self.pos.x + math.cos(math.rad(45))*nodeSize, self.pos.y + math.sin(math.rad(45))*nodeSize, 0, 0.5, 0.5, ox, oy)
+        love.graphics.setFont(font)
+    end
+    
+end
 
-
+function Node:Play()
+    if self.noteSource then
+        local source = self.noteSource:clone()
+        source:setPitch(self.noteSource:getPitch()*  2^(self.octave - 3))
+        source:play()
+    end
 end
 
 function Node:insertNextNode(n)
@@ -139,7 +174,7 @@ function Arrow:new(node1, node2)
     o.lastAngle = 0
     o.lastLength = 0
     o.dots = {}
-    o.dotCreationInterval = 0.15
+    o.dotCreationInterval = 0.30
     o.dotLastCreated = 0
     o.timer = 0
     o.lastDotRemovalID = 0
@@ -239,8 +274,10 @@ function Arrow:update(dt)
 end
 function Arrow:draw()
     love.graphics.setColor(current_theme.arrowColor)
-    
-    --love.graphics.line(self.curve:render())
+    local dlinewidth = love.graphics.getLineWidth()
+    love.graphics.setLineWidth(2)
+    love.graphics.line(self.curve:render())
+    love.graphics.setLineWidth(dlinewidth)
     love.graphics.circle("fill", self.node1.pos.x, self.node1.pos.y, 8, 70)
 
     for i = 1, #self.dots do
@@ -321,7 +358,15 @@ function Graph:newNode(x, y, camera)
     self.nodes[#self.nodes].id = #self.nodes
     self.nodes[#self.nodes].img = Palette.currentNote > 0 and love.graphics.newImage("/imgs/notes/"..current_theme.quality.."/"..Palette.notesNames[Palette.currentNote]..".png")
     self.nodes[#self.nodes].imgTheme = current_theme.quality
-    self.nodes[#self.nodes].noteName = Palette.notesNames[Palette.currentNote]
+    if Palette.notation == "bemol" then
+        self.nodes[#self.nodes].noteName = Palette.notesNames1[Palette.currentNote] or ""
+    else
+        self.nodes[#self.nodes].noteName = Palette.notesNames2[Palette.currentNote] or ""
+    end
+    if Palette.currentNote > 0 then
+        self.nodes[#self.nodes].noteSource = Palette:generateNoteSource(Palette.currentNote)
+    end
+    self.nodes[#self.nodes].octave = Palette.currentOctave
 end
 
 function Graph:update(dt, camera)
@@ -362,6 +407,7 @@ function Graph:draw()
         love.graphics.line(self.nodes[self.arrowCreationNode1].pos.x,
             self.nodes[self.arrowCreationNode1].pos.y, wx, wy)
     end
+    love.graphics.print(numberArrayToString(self:getRootNodes()), 0, 120)
 end
 
 function Graph:mousePressed(x, y, button)
@@ -411,6 +457,15 @@ function Graph:mouseReleased(x, y, button)
     end
 end
 
+function Graph:getRootNodes()
+    local rootNotes = {}
+    for i = 1, #self.nodes do
+        if self.nodes[i].root then
+            table.insert(rootNotes, self.nodes[i].id)
+        end
+    end
+    return rootNotes
+end
 function Graph:GetMouseOverNode()
     local n = 0
     for i = 1, #self.nodes, 1 do
