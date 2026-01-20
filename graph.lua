@@ -40,6 +40,7 @@ Node = {}
 function Node:new(x, y)
     local o = {}
     o.pos = Vector:new(x, y)
+    o.noteID = 0
     o.noteName = ""
     o.root = true
     o.fillColor = 12
@@ -51,7 +52,6 @@ function Node:new(x, y)
     o.nextNodes = {}
     o.img = nil
     o.imgTheme = "light"
-    o.noteName = ""
     o.noteSource = nil
     o.octave = 3
     o.currentOrdering = 1
@@ -73,7 +73,7 @@ function Node:update(dt, camera)
     end
     if self.img and self.imgTheme ~= current_theme.quality then
         self.imgTheme = current_theme.quality
-        self.img = love.graphics.newImage("/imgs/notes/"..current_theme.quality.."/"..Palette.notesNames[Palette.currentNote]..".png")
+        self.img = love.graphics.newImage("/imgs/notes/"..current_theme.quality.."/"..Palette.notesNames[self.noteID]..".png")
     end
 end
 
@@ -106,6 +106,7 @@ function Node:draw(nodeSize)
         love.graphics.setFont(font2)
         local ox, oy = font2:getWidth(self.noteName)/2, font2:getHeight(self.noteName)/2.5
         love.graphics.setColor(current_theme.nodeLineColor)
+        love.graphics.setColor(current_theme.quality == "dark" and {1, 1, 1} or {0, 0, 0})
         love.graphics.print(self.noteName, self.pos.x, self.pos.y, 0, 1, 1, ox, oy)
         love.graphics.setFont(font)
     end
@@ -384,6 +385,7 @@ function Graph:newNode(x, y, camera)
     self.nodes[#self.nodes].id = #self.nodes
     self.nodes[#self.nodes].img = Palette.currentNote > 0 and love.graphics.newImage("/imgs/notes/"..current_theme.quality.."/"..Palette.notesNames[Palette.currentNote]..".png")
     self.nodes[#self.nodes].imgTheme = current_theme.quality
+    self.nodes[#self.nodes].noteID = Palette.currentNote
     if Palette.notation == "bemol" then
         self.nodes[#self.nodes].noteName = Palette.notesNames1[Palette.currentNote] or ""
     else

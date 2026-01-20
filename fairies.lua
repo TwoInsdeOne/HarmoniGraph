@@ -13,16 +13,20 @@ function Fairy:new(delay, rootNodeID)
     o.mode = "ordered"
     o.ordering = {}
     o.currentOrdering = 1
+    o.finished = false
+    o.previous = 0
     setmetatable(o, self)
     self.__index = self
     return o
 end
 function Fairy:update(dt)
-    self.rotation = self.rotation + dt*0.2
-    self.timer = self.timer + dt
-    if self.timer - self.lastChange > self.delay then
-        self:playNext()
-        self.lastChange = self.timer
+    if not self.finished then
+        self.rotation = self.rotation + dt*0.2
+        self.timer = self.timer + dt
+        if self.timer - self.lastChange > self.delay then
+            self:playNext()
+            self.lastChange = self.timer
+        end
     end
 end
 
@@ -46,25 +50,32 @@ function Fairy:playNext()
     end
     if self.mode == "ordered" then
         
+        if #self.current > 0 then
+            local currentNode = Graph.nodes[self.current[1]]
+            currentNode:Play()
+            self.previous = self.current[1]
+            if #currentNode.nextNodes > 0 then
+                self.current[1] = currentNode.nextNodes[currentNode.currentOrdering]
+                currentNode:incrementCurrentOrdering()
+            else
+                self.current = {}
+                self.finished = true
+            end
+        end
         
-        local currentNode = Graph.nodes[self.current[1]]
-        currentNode:Play()
         
-        
-        self.current[1] = currentNode.nextNodes[currentNode.currentOrdering]
-        currentNode:incrementCurrentOrdering()
     end
 end
 
 function Fairy:draw()
     love.graphics.setColor(current_theme.nodeLineColor)
     --love.graphics.print(numberArrayToString(self.current), 0, 140)
-    if #self.current > 0 then
+    if self.previous > 0 then
         love.graphics.setColor(colors.white)
         local scale = Graph.nodeSize/self.fairy_img:getHeight()
         local origin = self.fairy_img:getHeight()/2
         for i = 1, #self.current do
-            local nx, ny = Graph.nodes[self.current[i]].pos.x, Graph.nodes[self.current[i]].pos.y
+            local nx, ny = Graph.nodes[self.previous].pos.x, Graph.nodes[self.previous].pos.y
             love.graphics.draw(self.fairy_img, nx, ny, self.rotation, scale*6, scale*6, origin, origin)
         end
     end
@@ -92,11 +103,21 @@ end
 
 Fairies = {}
 Fairies.list = {}
-Fairies.delay = 0.3
+Fairies.delay = 0.15
 
 function Fairies:addFairy(nodeList)
     for i = 1, #nodeList do
-        table.insert(self.list, Fairy:new(self.delay, Graph.nodes[nodeList[i]].id))
+        local foundActiveFairy = false
+        for j = 1, #self.list do
+            if self.list[j].rootNode == nodeList[i] then
+                if not self.list[j].finished then
+                    foundActiveFairy = true
+                end
+            end
+        end
+        if not foundActiveFairy then
+            table.insert(self.list, Fairy:new(self.delay, Graph.nodes[nodeList[i]].id))
+        end
     end
 end
 
