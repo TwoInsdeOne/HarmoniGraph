@@ -6,7 +6,7 @@ This is a musical instrument/toy. A new way to create music.
 
 To execute this software you need [LÖVE](https://love2d.org/) version 11.5
 
-Just execute the file HarmoniGraph.love
+After staling LÖVE, just execute the file HarmoniGraph.love
 
 ### How to use it
 
